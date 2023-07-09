@@ -472,12 +472,12 @@ primary_target_outcomes_func <- function( df, lookback_window, window){
     left_join( select( death, eid, date_of_death), by = "eid") %>% 
     left_join( clinical_sequelae_wide_history, by = "eid") %>% 
     left_join( clinical_sequelae_wide_after, by = "eid") %>% 
-    mutate( date_of_death = case_when( date_of_death <  index_date ~ as.Date( "2021-09-30"), 
+    mutate( date_of_death = case_when( date_of_death <  index_date ~ as.Date( "2022-09-30"), 
                                        date_of_death ==  index_date ~ date_of_death + 1, 
                                        TRUE ~ date_of_death)) %>% 
     mutate( across( .cols = starts_with("history_"), ~ case_when( .x < index_date & .x >= index_date - lookback_window ~ 1, TRUE ~ 0), .names = "history_outcome_{.col}")) %>% 
-    mutate( follow_up_end_date = case_when( is.na( date_of_death) ~ pmin( index_date + window, as.Date( "2021-09-30")), 
-                                            TRUE ~ pmin( date_of_death, index_date + window, as.Date( "2021-09-30"))),
+    mutate( follow_up_end_date = case_when( is.na( date_of_death) ~ pmin( index_date + window, as.Date( "2022-09-30")), 
+                                            TRUE ~ pmin( date_of_death, index_date + window, as.Date( "2022-09-30"))),
             across( .cols = starts_with("prefix_"), ~ case_when( .x >= index_date & .x <= follow_up_end_date ~ 1, TRUE ~ 0), .names = "incident_outcome_{.col}"),
             across( .cols = starts_with("prefix_"), ~ as.numeric( pmin( follow_up_end_date, .x, na.rm = TRUE) - index_date), .names = "follow_up_days_{.col}"),
             across( .cols = starts_with("follow_up_days_"), ~ case_when( .x == 0 ~ .x + 1, TRUE ~ .x ))) %>% 
