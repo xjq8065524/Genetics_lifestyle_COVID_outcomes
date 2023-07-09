@@ -501,41 +501,6 @@ linked_infection_primary_target_outcomes <-
   left_join( select( linked_infection_baseline, eid, index_date, all_of(covariates_list_infection), Coutinuous_tidy_total_score,
                      f_22009_0_1, f_22009_0_2, f_22009_0_3, f_22009_0_4, f_22009_0_5,
                      f_22009_0_6, f_22009_0_7, f_22009_0_8, f_22009_0_9, f_22009_0_10), by = c( "eid", "index_date"))
-
-
-# Curate hospital admission and death outcomes ----------------------------
-# Hospital admission
-hospital_admission_func <- function( df, window){
-  
-  admission_seq <- 
-    df %>% 
-    select( eid, index_date) %>% 
-    left_join( hesin, by = "eid") %>% 
-    filter( admidate > index_date) %>% 
-    arrange( admidate) %>% 
-    group_by( eid) %>% 
-    filter( row_number() == 1) %>% 
-    ungroup() %>% 
-    select( eid, admidate)
-  
-  
-  output_df <- 
-    df %>% 
-    left_join( admission_seq, by = "eid") %>% 
-    left_join( select( death, eid, date_of_death), by = "eid") %>% 
-    mutate( follow_up_end_date = case_when( is.na( date_of_death) ~ pmin( index_date + window, as.Date( "2021-09-30")), 
-                                            TRUE ~ pmin( date_of_death, index_date + window, as.Date( "2021-09-30"))),
-            incident_outcome = case_when( admidate > index_date & admidate <= follow_up_end_date ~ 1, TRUE ~ 0),
-            follow_up_days = as.numeric( pmin( follow_up_end_date, admidate, na.rm = TRUE) - index_date))   #30 days window
-  
-  
-  return( output_df)
-  
-}
-
-infection_hospital_admission <- hospital_admission_func( df = linked_infection_target_outcomes, window = 90)
-uninfection_hospital_admission <- hospital_admission_func( df = linked_uninfection_target_outcomes, window = 90)
-
 # Run model (continuous PRS) ---------------------------------------------------------------
 #target disease outcomes
 Model_target_outcomes_func <- function( df = linked_infection_target_outcomes, 
